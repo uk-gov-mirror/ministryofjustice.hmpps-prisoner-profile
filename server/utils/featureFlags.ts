@@ -1,9 +1,6 @@
 import { isAfter } from 'date-fns'
-import type { Response } from 'express'
-import { isGranted, XRayBodyScansPermission } from '@ministryofjustice/hmpps-prison-permissions-lib'
 import config from '../config'
 import { FeatureFlagMethod } from '../middleware/featureFlagGuard'
-import { isServiceEnabled } from './isServiceEnabled'
 
 interface ScheduledFeatureFlag {
   enabledPrisons: string[]
@@ -50,12 +47,3 @@ export const personDuplicateRecordsEnabled: FeatureFlagMethod = scheduledFeature
 )
 
 export const offencesMoved: FeatureFlagMethod = scheduledFeatureFlag(config.featureToggles.offencesMoved)
-
-export function isXrayBodyScansServiceAccessible(res: Response): boolean {
-  const { prisonerPermissions } = res.locals
-  return (
-    config.featureToggles.xRayBodyScansEnabled &&
-    isServiceEnabled('x-ray-body-scans', res.locals.feComponents?.sharedData) &&
-    isGranted(XRayBodyScansPermission.read_scans, prisonerPermissions)
-  )
-}

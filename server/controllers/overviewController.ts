@@ -9,6 +9,7 @@ import {
   PrisonerIncentivesPermission,
   PrisonerMoneyPermission,
   PrisonerVisitsAndVisitorsPermission,
+  XRayBodyScansPermission,
 } from '@ministryofjustice/hmpps-prison-permissions-lib'
 
 import { mapHeaderData } from '../mappers/headerMappers'
@@ -41,10 +42,9 @@ import buildOverviewInfoLinks from './utils/overviewController/buildOverviewInfo
 import getPersonalDetails from './utils/overviewController/getPersonalDetails'
 import getCsraSummary from './utils/overviewController/getCsraSummary'
 import getCategorySummary from './utils/overviewController/getCategorySummary'
-import { mapXrayBodyScanSummary } from './utils/overviewController/mapXrayBodyScanData'
 import CsipService from '../services/csipService'
 import { isServiceEnabled } from '../utils/isServiceEnabled'
-import { isXrayBodyScansServiceAccessible, offencesMoved } from '../utils/featureFlags'
+import { offencesMoved } from '../utils/featureFlags'
 import ContactsService from '../services/contactsService'
 
 /**
@@ -85,7 +85,10 @@ export default class OverviewController {
     const showCourtCaseSummary = isGranted(PersonSentenceCalculationPermission.edit, prisonerPermissions)
     const showConfirmedReleaseDateNonCalculate = !showCourtCaseSummary && offencesMoved(activeCaseLoadId)
 
-    const xrayBodyScansServiceAccessible = isXrayBodyScansServiceAccessible(res)
+    const xrayBodyScansServiceAccessible =
+      config.featureToggles.xRayBodyScansEnabled &&
+      isServiceEnabled('x-ray-body-scans', res.locals.feComponents?.sharedData) &&
+      isGranted(XRayBodyScansPermission.read_scans, prisonerPermissions)
 
     const [
       pathfinderNominal,
@@ -148,9 +151,7 @@ export default class OverviewController {
         : null,
       xrayBodyScansServiceAccessible
         ? Result.wrap(
-            xRayBodyScansApiClient
-              .getScanSummary(prisonerNumber, { includeLatestScan: true })
-              .then(mapXrayBodyScanSummary),
+            xRayBodyScansApiClient.getScanSummary(prisonerNumber, { includeLatestScan: true }),
             apiErrorCallback,
           )
         : null,

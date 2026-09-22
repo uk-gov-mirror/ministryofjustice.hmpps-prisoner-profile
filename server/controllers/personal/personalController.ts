@@ -1,4 +1,5 @@
 import type { RequestHandler } from 'express'
+import { isGranted, XRayBodyScansPermission } from '@ministryofjustice/hmpps-prison-permissions-lib'
 import config from '../../config'
 import type { PrisonUser } from '../../interfaces/HmppsUser'
 import { mapHeaderData } from '../../mappers/headerMappers'
@@ -8,8 +9,8 @@ import {
   editProfileEnabled,
   editProfileSimulateFetch,
   editReligionEnabled,
-  isXrayBodyScansServiceAccessible,
 } from '../../utils/featureFlags'
+import { isServiceEnabled } from '../../utils/isServiceEnabled'
 import CareNeedsService from '../../services/careNeedsService'
 import PersonalPageService from '../../services/personalPageService'
 
@@ -30,7 +31,10 @@ export default class PersonalController {
       const changeContactLinkEnabled = changeContactDetailsLinkEnabled(activeCaseLoadId)
       const simulateFetchEnabled = editProfileSimulateFetch(activeCaseLoadId)
       const { personalRelationshipsApiReadEnabled, personEndpointsEnabled } = config.featureToggles
-      const xrayBodyScansServiceAccessible = isXrayBodyScansServiceAccessible(res)
+      const xrayBodyScansServiceAccessible =
+        config.featureToggles.xRayBodyScansEnabled &&
+        isServiceEnabled('x-ray-body-scans', res.locals.feComponents?.sharedData) &&
+        isGranted(XRayBodyScansPermission.read_scans, prisonerPermissions)
 
       const [personalPageData, careNeeds, xrays] = await Promise.all([
         this.personalPageService.get(clientToken, prisonerData, {

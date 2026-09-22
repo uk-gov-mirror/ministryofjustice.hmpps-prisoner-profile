@@ -1,11 +1,12 @@
 import type { Request, Response } from 'express'
+import { isGranted, XRayBodyScansPermission } from '@ministryofjustice/hmpps-prison-permissions-lib'
 import config from '../config'
 import logger from '../../logger'
+import { isServiceEnabled } from '../utils/isServiceEnabled'
 import { type AuditService, Page } from '../services/auditService'
 import type CareNeedsService from '../services/careNeedsService'
 import type { RestClientBuilder } from '../data'
 import type { XRayBodyScansApiClient } from '../data/interfaces/xRayBodyScansApi'
-import { isXrayBodyScansServiceAccessible } from '../utils/featureFlags'
 
 export default class CareNeedsController {
   constructor(
@@ -40,8 +41,13 @@ export default class CareNeedsController {
 
   public async displayXrayBodyScans(req: Request, res: Response) {
     const { prisonerData, clientToken } = req.middleware
+    const { prisonerPermissions } = res.locals
 
-    const xrayBodyScansServiceAccessible = isXrayBodyScansServiceAccessible(res)
+    const xrayBodyScansServiceAccessible =
+      config.featureToggles.xRayBodyScansEnabled &&
+      isServiceEnabled('x-ray-body-scans', res.locals.feComponents?.sharedData) &&
+      isGranted(XRayBodyScansPermission.read_scans, prisonerPermissions)
+
     if (xrayBodyScansServiceAccessible) {
       // TODO: move redirect to router level once enabled everywhere
       res.redirect(`${config.serviceUrls.xRayBodyScansUi}/prisoner/${prisonerData.prisonerNumber}/scan-overview`)

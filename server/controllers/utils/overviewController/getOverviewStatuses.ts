@@ -4,7 +4,7 @@ import type Prisoner from '../../../data/interfaces/prisonerSearchApi/Prisoner'
 import type InmateDetail from '../../../data/interfaces/prisonApi/InmateDetail'
 import type { HasNeed } from '../../../data/interfaces/supportForAdditionalNeedsApi/SupportForAdditionalNeeds'
 import type { PrisonerPrisonSchedule } from '../../../data/interfaces/prisonApi/PrisonerSchedule'
-import type { XrayBodyScanSummary } from './mapXrayBodyScanData'
+import type { ScanSummaryResponse } from '../../../data/interfaces/xRayBodyScansApi'
 import {
   getProfileInformationValue,
   ProfileInformationType,
@@ -16,7 +16,7 @@ export default function getOverviewStatuses(
   inmateDetail: InmateDetail,
   hasNeedsForAdditionalSupport: Result<HasNeed>,
   scheduledTransfers: PrisonerPrisonSchedule[] | null,
-  xrayBodyScanSummary: Result<XrayBodyScanSummary> | null,
+  xrayBodyScanSummary: Result<ScanSummaryResponse> | null,
 ): OverviewStatus[] {
   return [
     getLocationStatus(prisonerData),
@@ -94,7 +94,7 @@ function getScheduledTransferStatus(scheduledTransfers: PrisonerPrisonSchedule[]
 }
 
 function getXrayBodyScanLimitReachedStatus(
-  xrayBodyScanSummary: Result<XrayBodyScanSummary> | null,
+  xrayBodyScanSummary: Result<ScanSummaryResponse> | null,
 ): OverviewStatus | null {
   return (
     xrayBodyScanSummary?.handle({

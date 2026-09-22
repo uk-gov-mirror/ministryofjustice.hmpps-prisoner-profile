@@ -11,7 +11,6 @@ export function mapXrayBodyScanSummary(summaryResponse: ScanSummaryResponse): Xr
   const urlPrefix = `${config.serviceUrls.xRayBodyScansUi}/prisoner/${summaryResponse.prisonerNumber}`
   return {
     ...summaryResponse,
-    // TODO: make this obey service’s active agencies
     recordScanUrl: `${urlPrefix}/record-scan`,
     viewHistoryUrl: `${urlPrefix}/scan-overview`,
   }
