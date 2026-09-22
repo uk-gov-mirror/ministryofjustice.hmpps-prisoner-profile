@@ -8,7 +8,7 @@ import {
   editProfileEnabled,
   editProfileSimulateFetch,
   editReligionEnabled,
-  isXrayBodyScansServiceEnabled,
+  isXrayBodyScansServiceAccessible,
 } from '../../utils/featureFlags'
 import CareNeedsService from '../../services/careNeedsService'
 import PersonalPageService from '../../services/personalPageService'
@@ -30,7 +30,7 @@ export default class PersonalController {
       const changeContactLinkEnabled = changeContactDetailsLinkEnabled(activeCaseLoadId)
       const simulateFetchEnabled = editProfileSimulateFetch(activeCaseLoadId)
       const { personalRelationshipsApiReadEnabled, personEndpointsEnabled } = config.featureToggles
-      const xrayBodyScansServiceEnabled = isXrayBodyScansServiceEnabled(res)
+      const xrayBodyScansServiceAccessible = isXrayBodyScansServiceAccessible(res)
 
       const [personalPageData, careNeeds, xrays] = await Promise.all([
         this.personalPageService.get(clientToken, prisonerData, {
@@ -41,7 +41,7 @@ export default class PersonalController {
           personEndpointsEnabled,
         }),
         this.careNeedsService.getCareNeedsAndAdjustments(clientToken, bookingId),
-        xrayBodyScansServiceEnabled ? null : this.careNeedsService.getXrayBodyScanSummary(clientToken, bookingId),
+        xrayBodyScansServiceAccessible ? null : this.careNeedsService.getXrayBodyScanSummary(clientToken, bookingId),
       ])
 
       await this.auditService.sendPageView({
@@ -75,7 +75,7 @@ export default class PersonalController {
         hasHomeOfficeId,
         useCustomErrorBanner: true,
         changeContactLinkEnabled,
-        xrayBodyScansServiceEnabled,
+        xrayBodyScansServiceAccessible,
       })
     }
   }

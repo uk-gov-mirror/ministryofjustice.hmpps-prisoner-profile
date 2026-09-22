@@ -659,6 +659,7 @@ context('When signed in', () => {
     })
 
     it('Says that x-ray body scans have moved to the overview page', () => {
+      // TODO: remove cy.setupUserAuth(…) once XRBS no longer relies on DPS app dev
       cy.setupUserAuth({ roles: [Role.PrisonUser, Role.DpsApplicationDeveloper] })
       visitPersonalDetailsPage()
       const page = Page.verifyOnPage(PersonalPage)

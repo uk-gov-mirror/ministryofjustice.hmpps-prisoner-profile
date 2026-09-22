@@ -7,6 +7,7 @@ import {
   PrisonerMoneyPermission,
   PrisonerPermissions,
   PrisonerVisitsAndVisitorsPermission,
+  XRayBodyScansPermission,
 } from '@ministryofjustice/hmpps-prison-permissions-lib'
 import config from '../config'
 import type { HmppsUser } from '../interfaces/HmppsUser'
@@ -678,15 +679,9 @@ describe('overviewController', () => {
     })
 
     describe('x-ray body scan limit', () => {
-      // TODO: remove `resWithDpsDevRole` once XRBS no longer relies on DPS app dev
-      let resWithDpsDevRole: Response
       beforeEach(() => {
         config.featureToggles.xRayBodyScansEnabled = true
-
-        resWithDpsDevRole = {
-          ...res,
-          locals: getResLocals({ userRoles: [Role.DpsApplicationDeveloper] }),
-        } as unknown as Response
+        mockPermissions({ [XRayBodyScansPermission.read_scans]: true })
       })
 
       it.each([
@@ -703,9 +698,9 @@ describe('overviewController', () => {
         })
         xRayBodyScansApiClient.getScanSummary.mockResolvedValueOnce(summary)
 
-        await controller.displayOverview(req, resWithDpsDevRole)
+        await controller.displayOverview(req, res)
 
-        expect(resWithDpsDevRole.render).toHaveBeenCalledWith(
+        expect(res.render).toHaveBeenCalledWith(
           'pages/overviewPage',
           expect.objectContaining({
             statuses: [{ label: 'In Moorland (HMP & YOI)' }, { label: 'Recognised listener' }],
@@ -724,9 +719,9 @@ describe('overviewController', () => {
         })
         xRayBodyScansApiClient.getScanSummary.mockResolvedValueOnce(summary)
 
-        await controller.displayOverview(req, resWithDpsDevRole)
+        await controller.displayOverview(req, res)
 
-        expect(resWithDpsDevRole.render).toHaveBeenCalledWith(
+        expect(res.render).toHaveBeenCalledWith(
           'pages/overviewPage',
           expect.objectContaining({
             statuses: [
@@ -746,9 +741,9 @@ describe('overviewController', () => {
       it('should indicate an error when API fails', async () => {
         xRayBodyScansApiClient.getScanSummary.mockRejectedValueOnce('Server Error')
 
-        await controller.displayOverview(req, resWithDpsDevRole)
+        await controller.displayOverview(req, res)
 
-        expect(resWithDpsDevRole.render).toHaveBeenCalledWith(
+        expect(res.render).toHaveBeenCalledWith(
           'pages/overviewPage',
           expect.objectContaining({
             statuses: [
@@ -925,10 +920,14 @@ describe('overviewController', () => {
   describe('x-ray body scans card', () => {
     beforeEach(() => {
       config.featureToggles.xRayBodyScansEnabled = true
+      mockPermissions({ [XRayBodyScansPermission.read_scans]: true })
     })
 
-    it('should not call api without DPS app dev role', async () => {
+    it('should not call api without x-ray body scans permission', async () => {
+      mockPermissions({ [XRayBodyScansPermission.read_scans]: false })
+
       await controller.displayOverview(req, res)
+
       expect(xRayBodyScansApiClient.getScanSummary).not.toHaveBeenCalled()
       expect(res.render).toHaveBeenCalledWith(
         'pages/overviewPage',
@@ -938,19 +937,10 @@ describe('overviewController', () => {
       )
     })
 
-    // TODO: remove `resWithDpsDevRole` once XRBS no longer relies on DPS app dev
-    let resWithDpsDevRole: Response
-    beforeEach(() => {
-      resWithDpsDevRole = {
-        ...res,
-        locals: getResLocals({ userRoles: [Role.DpsApplicationDeveloper] }),
-      } as unknown as Response
-    })
-
     it('should not call api if service is not enabled in active case load', async () => {
-      resWithDpsDevRole.locals.feComponents.sharedData.services = []
+      res.locals.feComponents.sharedData.services = []
 
-      await controller.displayOverview(req, resWithDpsDevRole)
+      await controller.displayOverview(req, res)
 
       expect(xRayBodyScansApiClient.getScanSummary).not.toHaveBeenCalled()
     })
@@ -958,7 +948,7 @@ describe('overviewController', () => {
     it('should not load when disabled', async () => {
       config.featureToggles.xRayBodyScansEnabled = false
 
-      await controller.displayOverview(req, resWithDpsDevRole)
+      await controller.displayOverview(req, res)
 
       expect(xRayBodyScansApiClient.getScanSummary).not.toHaveBeenCalled()
     })
@@ -979,9 +969,9 @@ describe('overviewController', () => {
       })
       xRayBodyScansApiClient.getScanSummary.mockResolvedValueOnce(scanSummary)
 
-      await controller.displayOverview(req, resWithDpsDevRole)
+      await controller.displayOverview(req, res)
 
-      expect(resWithDpsDevRole.render).toHaveBeenCalledWith(
+      expect(res.render).toHaveBeenCalledWith(
         'pages/overviewPage',
         expect.objectContaining({
           xrayBodyScanSummary: expect.objectContaining({
@@ -999,9 +989,9 @@ describe('overviewController', () => {
 
     it('should indicate an error when API fails', async () => {
       xRayBodyScansApiClient.getScanSummary.mockRejectedValueOnce('Server Error')
-      await controller.displayOverview(req, resWithDpsDevRole)
+      await controller.displayOverview(req, res)
 
-      expect(resWithDpsDevRole.render).toHaveBeenCalledWith(
+      expect(res.render).toHaveBeenCalledWith(
         'pages/overviewPage',
         expect.objectContaining({
           xrayBodyScanSummary: expect.objectContaining({

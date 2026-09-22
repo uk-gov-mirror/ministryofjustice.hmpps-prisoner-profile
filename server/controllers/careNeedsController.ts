@@ -5,7 +5,7 @@ import { type AuditService, Page } from '../services/auditService'
 import type CareNeedsService from '../services/careNeedsService'
 import type { RestClientBuilder } from '../data'
 import type { XRayBodyScansApiClient } from '../data/interfaces/xRayBodyScansApi'
-import { isXrayBodyScansServiceEnabled } from '../utils/featureFlags'
+import { isXrayBodyScansServiceAccessible } from '../utils/featureFlags'
 
 export default class CareNeedsController {
   constructor(
@@ -41,8 +41,8 @@ export default class CareNeedsController {
   public async displayXrayBodyScans(req: Request, res: Response) {
     const { prisonerData, clientToken } = req.middleware
 
-    const xrayBodyScansServiceEnabled = isXrayBodyScansServiceEnabled(res)
-    if (xrayBodyScansServiceEnabled) {
+    const xrayBodyScansServiceAccessible = isXrayBodyScansServiceAccessible(res)
+    if (xrayBodyScansServiceAccessible) {
       // TODO: move redirect to router level once enabled everywhere
       res.redirect(`${config.serviceUrls.xRayBodyScansUi}/prisoner/${prisonerData.prisonerNumber}/scan-overview`)
       return

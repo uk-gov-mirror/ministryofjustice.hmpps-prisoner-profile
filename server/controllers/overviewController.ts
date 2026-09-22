@@ -44,7 +44,7 @@ import getCategorySummary from './utils/overviewController/getCategorySummary'
 import { mapXrayBodyScanSummary } from './utils/overviewController/mapXrayBodyScanData'
 import CsipService from '../services/csipService'
 import { isServiceEnabled } from '../utils/isServiceEnabled'
-import { isXrayBodyScansServiceEnabled, offencesMoved } from '../utils/featureFlags'
+import { isXrayBodyScansServiceAccessible, offencesMoved } from '../utils/featureFlags'
 import ContactsService from '../services/contactsService'
 
 /**
@@ -85,7 +85,7 @@ export default class OverviewController {
     const showCourtCaseSummary = isGranted(PersonSentenceCalculationPermission.edit, prisonerPermissions)
     const showConfirmedReleaseDateNonCalculate = !showCourtCaseSummary && offencesMoved(activeCaseLoadId)
 
-    const xrayBodyScansServiceEnabled = isXrayBodyScansServiceEnabled(res)
+    const xrayBodyScansServiceAccessible = isXrayBodyScansServiceAccessible(res)
 
     const [
       pathfinderNominal,
@@ -146,7 +146,7 @@ export default class OverviewController {
       isGranted(PersonalRelationshipsPermission.read_contacts, prisonerPermissions)
         ? Result.wrap(this.contactsService.getExternalContactsCount(clientToken, prisonerNumber), apiErrorCallback)
         : null,
-      xrayBodyScansServiceEnabled
+      xrayBodyScansServiceAccessible
         ? Result.wrap(
             xRayBodyScansApiClient
               .getScanSummary(prisonerNumber, { includeLatestScan: true })

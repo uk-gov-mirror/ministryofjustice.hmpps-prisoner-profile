@@ -1054,6 +1054,7 @@ context('Overview Page', () => {
     })
   })
 
+  // TODO: remove once XRBS no longer relies on DPS app dev
   context('Given user is not a DPS developer', () => {
     beforeEach(() => {
       cy.task('reset')
@@ -1062,7 +1063,6 @@ context('Overview Page', () => {
       visitOverviewPage()
     })
 
-    // TODO: remove once XRBS no longer relies on DPS app dev
     it('should not show x-ray body scans summary', () => {
       const overviewPage = Page.verifyOnPage(OverviewPage)
       overviewPage.xrayBodyScansCard.container.should('not.exist')
